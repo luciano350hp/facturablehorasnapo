@@ -210,16 +210,48 @@ function Clients() {
       <Card className="border-border/60 p-0">
         <div className="divide-y divide-border/60">
           {store.clients.map((c) => (
-            <div key={c.id} className="flex items-center justify-between px-5 py-4">
-              <div>
-                <p className="font-medium">{c.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {c.type === "hour" ? `Por hora · ${formatMoney(c.rate)}/h` : `Por palabra · ${formatMoney(c.rate)}/palabra · modo ${c.pricingMode}`}
-                </p>
+            <div key={c.id} className="px-5 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium">{c.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {c.type === "hour" ? `Por hora · ${formatMoney(c.rate)}/h` : `Por palabra · ${formatMoney(c.rate)}/palabra · modo ${c.pricingMode}`}
+                  </p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => remove(c.id)}>
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => remove(c.id)}>
-                <Trash2 className="h-4 w-4 text-muted-foreground" />
-              </Button>
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div>
+                  <Label className="text-xs">Tarifa</Label>
+                  <Input
+                    type="number"
+                    value={c.rate}
+                    onChange={(e) =>
+                      update((s) => ({
+                        ...s,
+                        clients: s.clients.map((x) => x.id === c.id ? { ...x, rate: Number(e.target.value) } : x),
+                      }))
+                    }
+                  />
+                </div>
+                {c.type === "word" && (
+                  <div>
+                    <Label className="text-xs">% desc. repeticiones</Label>
+                    <Input
+                      type="number"
+                      value={c.repetitionDiscount ?? 50}
+                      onChange={(e) =>
+                        update((s) => ({
+                          ...s,
+                          clients: s.clients.map((x) => x.id === c.id ? { ...x, repetitionDiscount: Number(e.target.value) } : x),
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
