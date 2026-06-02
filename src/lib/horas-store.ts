@@ -77,11 +77,20 @@ function load(): Store {
 }
 
 let memory: Store | null = null;
+let hydratedFromStorage = false;
 const listeners = new Set<() => void>();
 
 function getStore(): Store {
-  if (!memory) memory = load();
+  if (!memory) memory = seed;
   return memory;
+}
+
+function hydrateFromStorage() {
+  if (typeof window === "undefined" || hydratedFromStorage) return;
+  hydratedFromStorage = true;
+  const next = load();
+  memory = next;
+  listeners.forEach((l) => l());
 }
 
 function setStore(next: Store) {
@@ -95,6 +104,7 @@ function setStore(next: Store) {
 export function useStore() {
   const [, force] = useState(0);
   useEffect(() => {
+    hydrateFromStorage();
     const l = () => force((n) => n + 1);
     listeners.add(l);
     return () => {
