@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HorasClaras — Sabé exactamente cuánto cobrar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #f7f3ee;
+  --ink: #1a1714;
+  --ink-soft: #5a5450;
+  --accent: #d4622a;
+  --accent-light: #f0e0d6;
+  --border: #e2dbd4;
+  --white: #ffffff;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 18px 48px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(247, 243, 238, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 20px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.nav-logo span { color: var(--accent); }
+.nav-cta {
+  background: var(--ink);
+  color: var(--white);
+  padding: 10px 22px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.nav-cta:hover { background: var(--accent); }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 48px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(212,98,42,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-inner {
+  max-width: 720px;
+  position: relative;
+  z-index: 1;
+}
+.hero-tag {
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 28px;
+}
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+.hero p {
+  font-size: 18px;
+  color: var(--ink-soft);
+  max-width: 520px;
+  margin-bottom: 40px;
+  line-height: 1.7;
+}
+.hero-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hero-form input {
+  flex: 1;
+  min-width: 220px;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  outline: none;
+}
+.hero-form input:focus { border-color: var(--accent); }
+.hero-form button {
+  padding: 14px 28px;
+  background: var(--accent);
+  color: var(--white);
+  border: none;
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s, transform 0.15s;
+}
+.hero-form button:hover { background: #b8501f; transform: translateY(-1px); }
+.hero-note { font-size: 13px; color: var(--ink-soft); margin-top: 14px; }
+
+/* SOCIAL PROOF */
+.proof {
+  border-top: 1px solid var(--border);
+  padding: 20px 48px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  background: var(--white);
+}
+.proof-item {
+  font-size: 13px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.proof-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* PROBLEMA */
+.problem {
+  padding: 100px 48px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.problem h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.2;
+  margin-bottom: 48px;
+  color: var(--ink);
+}
+.problem h2 em { font-style: italic; color: var(--accent); }
+.pain-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.pain-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+.pain-icon { font-size: 24px; margin-bottom: 12px; }
+.pain-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.pain-card p { font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+
+/* FEATURES */
+.features {
+  padding: 80px 48px;
+  background: var(--ink);
+  color: var(--white);
+}
+.features-inner { max-width: 900px; margin: 0 auto; }
+.features-tag {
+  display: inline-block;
+  background: rgba(212,98,42,0.3);
+  color: #f09070;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 24px;
+}
+.features h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(28px, 4vw, 42px);
+  margin-bottom: 48px;
+  line-height: 1.2;
+}
+.features h2 em { color: var(--accent); font-style: italic; }
+.feature-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.feature-item {
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 28px;
+  transition: border-color 0.2s;
+}
+.feature-item:hover { border-color: rgba(212,98,42,0.5); }
+.feature-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 36px;
+  color: rgba(255,255,255,0.15);
+  margin-bottom: 12px;
+}
+.feature-item h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.feature-item p { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+
+/* PARA QUIEN */
+.for-who {
+  padding: 100px 48px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.for-who h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(28px, 4vw, 42px);
+  margin-bottom: 40px;
+  line-height: 1.2;
+}
+.for-who h2 em { font-style: italic; color: var(--accent); }
+.profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.profile-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+}
+.profile-emoji { font-size: 32px; margin-bottom: 14px; }
+.profile-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.profile-card p { font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+.profile-card ul { margin-top: 12px; padding-left: 18px; }
+.profile-card ul li { font-size: 13px; color: var(--ink-soft); margin-bottom: 4px; }
+
+/* CTA FINAL */
+.cta-final {
+  padding: 100px 48px;
+  text-align: center;
+  background: var(--accent-light);
+  border-top: 1px solid #e8d5c8;
+}
+.cta-final h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.15;
+  margin-bottom: 20px;
+  color: var(--ink);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.cta-final h2 em { font-style: italic; color: var(--accent); }
+.cta-final p {
+  font-size: 17px;
+  color: var(--ink-soft);
+  margin-bottom: 36px;
+}
+.cta-final form {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cta-final input {
+  padding: 14px 22px;
+  border: 1px solid #d0bfb3;
+  border-radius: 100px;
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  width: 280px;
+  outline: none;
+}
+.cta-final input:focus { border-color: var(--accent); }
+.cta-final button {
+  padding: 14px 28px;
+  background: var(--ink);
+  color: var(--white);
+  border: none;
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s;
+}
+.cta-final button:hover { background: var(--accent); }
+
+footer {
+  padding: 24px 48px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--border);
+}
+
+/* TOAST */
+.toast {
+  display: none;
+  position: fixed;
+  bottom: 32px; left: 50%; transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--white);
+  padding: 14px 24px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000;
+  white-space: nowrap;
+}
+.toast.show { display: block; animation: fadeup 0.3s ease; }
+@keyframes fadeup { from { opacity:0; transform: translateX(-50%) translateY(12px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+/* MOBILE */
+@media (max-width: 640px) {
+  nav { padding: 16px 20px; }
+  .hero { padding: 100px 20px 60px; }
+  .proof { padding: 16px 20px; gap: 16px; }
+  .problem, .for-who { padding: 60px 20px; }
+  .features { padding: 60px 20px; }
+  .cta-final { padding: 60px 20px; }
+  footer { padding: 20px; }
+  .profile-grid { grid-template-columns: 1fr; }
+}
+
+/* FADE IN ANIMATION */
+.fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">Horas<span>Claras</span></a>
+  <a class="nav-cta" href="#lista">Quiero acceso anticipado</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Para profes y traductoras freelance</div>
+    <h1>Sabé exactamente<br>cuánto cobrarle<br>a <em>cada cliente</em></h1>
+    <p>Registrá tus horas y trabajos de traducción, y generá un tarifario profesional en PDF listo para enviar por WhatsApp — en menos de 2 minutos.</p>
+    <div class="hero-form" id="lista">
+      <input type="email" id="email-hero" placeholder="tu@email.com">
+      <button onclick="suscribir('email-hero')">Quiero acceso anticipado</button>
+    </div>
+    <p class="hero-note">Gratis durante el lanzamiento · Sin tarjeta de crédito</p>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<div class="proof">
+  <div class="proof-item"><span class="proof-dot"></span>Validado con profes y traductoras reales</div>
+  <div class="proof-item"><span class="proof-dot"></span>Funciona en celular y computadora</div>
+  <div class="proof-item"><span class="proof-dot"></span>Todo en castellano</div>
+  <div class="proof-item"><span class="proof-dot"></span>Sin planillas ni cuentas manuales</div>
+</div>
+
+<!-- PROBLEMA -->
+<section class="problem">
+  <h2 class="fade-in">¿Cuántas horas perdés<br>por mes en <em>administración</em><br>que no te paga nadie?</h2>
+  <div class="pain-grid">
+    <div class="pain-card fade-in">
+      <div class="pain-icon">😶</div>
+      <h3>Fin de mes sin claridad</h3>
+      <p>No sabés bien cuántas horas trabajaste ni cuánto cobrarle a cada cliente. Terminás cobrando de menos.</p>
+    </div>
+    <div class="pain-card fade-in">
+      <div class="pain-icon">📊</div>
+      <h3>La planilla que nadie entiende</h3>
+      <p>Un Excel con fórmulas que se rompen, datos desactualizados y presupuestos hechos a mano en WhatsApp.</p>
+    </div>
+    <div class="pain-card fade-in">
+      <div class="pain-icon">🔢</div>
+      <h3>Contar palabras a mano</h3>
+      <p>Pegar el texto en Word, contar, calcular el descuento por repeticiones, multiplicar por la tarifa... cada vez.</p>
+    </div>
+    <div class="pain-card fade-in">
+      <div class="pain-icon">⏳</div>
+      <h3>Tiempo que no cobra</h3>
+      <p>Entre 30 y 60 minutos por semana en tareas administrativas. Tiempo que podría ser otra clase o descanso.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-inner">
+    <div class="features-tag">Cómo funciona</div>
+    <h2 class="fade-in">Todo lo que necesitás,<br><em>nada que no usás</em></h2>
+    <div class="feature-list">
+      <div class="feature-item fade-in">
+        <div class="feature-num">01</div>
+        <h3>Registrá tus horas</h3>
+        <p>Cliente, fecha, duración y tipo (facturable o planificación). En 30 segundos. Desde el celular entre clase y clase.</p>
+      </div>
+      <div class="feature-item fade-in">
+        <div class="feature-num">02</div>
+        <h3>Cotizador de palabras</h3>
+        <p>Pegás el texto y la app cuenta sola: total, únicas, repetidas. Aplica el descuento configurado y te da el precio.</p>
+      </div>
+      <div class="feature-item fade-in">
+        <div class="feature-num">03</div>
+        <h3>Tarifario PDF en un clic</h3>
+        <p>Elegís el cliente y el mes. La app genera un PDF prolijo con el detalle completo, listo para mandar por WhatsApp.</p>
+      </div>
+      <div class="feature-item fade-in">
+        <div class="feature-num">04</div>
+        <h3>Dashboard del mes</h3>
+        <p>Ves de un vistazo cuánto trabajaste, para quién, y cuánto vas a cobrar. Sin buscar en planillas ni hacer cuentas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARA QUIÉN -->
+<section class="for-who">
+  <h2 class="fade-in">Hecho para <em>vos</em></h2>
+  <div class="profile-grid">
+    <div class="profile-card fade-in">
+      <div class="profile-emoji">👩‍🏫</div>
+      <h3>Profesora de inglés</h3>
+      <p>Tenés varios alumnos con distintos horarios y tarifas. Querés saber exactamente cuántas horas diste en el mes y generar el resumen para cada uno.</p>
+      <ul>
+        <li>Registro de horas por cliente</li>
+        <li>Separación facturable / planificación</li>
+        <li>Tarifario PDF listo para enviar</li>
+      </ul>
+    </div>
+    <div class="profile-card fade-in">
+      <div class="profile-emoji">📝</div>
+      <h3>Traductora freelance</h3>
+      <p>Cobrás por palabra y necesitás contar, calcular descuentos por repeticiones y presupuestar rápido. Sin perder tiempo en cuentas manuales.</p>
+      <ul>
+        <li>Cotizador automático de palabras</li>
+        <li>Descuento por repeticiones configurable</li>
+        <li>Presupuesto listo en segundos</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <h2>Empezá el mes que viene<br>sabiendo <em>exactamente</em><br>cuánto cobrar</h2>
+  <p>Anotate y sé de las primeras en acceder gratis.</p>
+  <form onsubmit="suscribir('email-cta'); return false;">
+    <input type="email" id="email-cta" placeholder="tu@email.com">
+    <button type="submit">Quiero acceso anticipado</button>
+  </form>
+</section>
+
+<footer>
+  © 2026 HorasClaras · Para profes y traductoras freelance de Argentina
+</footer>
+
+<div class="toast" id="toast">✓ ¡Listo! Te avisamos cuando abramos el acceso.</div>
+
+<script>
+function suscribir(inputId) {
+  const val = document.getElementById(inputId).value;
+  if (!val || !val.includes('@')) { alert('Ingresá un email válido'); return; }
+  document.getElementById(inputId).value = '';
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// Fade in on scroll
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

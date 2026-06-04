@@ -1,632 +1,344 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { jsPDF } from "jspdf";
-import {
-  countWords,
-  formatMoney,
-  minutesToHuman,
-  uid,
-  useStore,
-  type Client,
-} from "@/lib/horas-store";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import {
-  Clock,
-  Users,
-  FileText,
-  LayoutDashboard,
-  Plus,
-  Trash2,
-  Download,
-  Sparkles,
-  RotateCcw,
-} from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast, Toaster } from "sonner";
 
-export const Route = createFileRoute("/")({ component: Index });
+export const Route = createFileRoute("/")({
+  component: Landing,
+  head: () => ({
+    meta: [
+      { title: "HorasClaras — Sabé exactamente cuánto cobrar" },
+      {
+        name: "description",
+        content:
+          "Para profes de inglés y traductoras freelance: registrá tus horas y trabajos de traducción, y generá un tarifario PDF listo para enviar por WhatsApp.",
+      },
+      { property: "og:title", content: "HorasClaras — Sabé exactamente cuánto cobrar" },
+      {
+        property: "og:description",
+        content:
+          "Registrá tus horas y trabajos de traducción, y generá un tarifario PDF en menos de 2 minutos.",
+      },
+    ],
+  }),
+});
 
-function Index() {
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Toaster position="top-center" richColors />
-      <Header />
-      <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6">
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 gap-1 bg-secondary/60 p-1 sm:grid-cols-5 sm:gap-0">
-            <TabsTrigger value="dashboard" className="gap-2"><LayoutDashboard className="h-4 w-4" />Resumen</TabsTrigger>
-            <TabsTrigger value="clients" className="gap-2"><Users className="h-4 w-4" />Clientes</TabsTrigger>
-            <TabsTrigger value="time" className="gap-2"><Clock className="h-4 w-4" />Horas</TabsTrigger>
-            <TabsTrigger value="words" className="gap-2"><Sparkles className="h-4 w-4" />Palabras</TabsTrigger>
-            <TabsTrigger value="pdf" className="gap-2"><FileText className="h-4 w-4" />Tarifario</TabsTrigger>
-          </TabsList>
+const styles = `
+:root {
+  --hc-cream: #f7f3ee;
+  --hc-ink: #1a1714;
+  --hc-ink-soft: #5a5450;
+  --hc-accent: #d4622a;
+  --hc-accent-light: #f0e0d6;
+  --hc-border: #e2dbd4;
+  --hc-white: #ffffff;
+}
+.hc-root { font-family: 'DM Sans', system-ui, sans-serif; background: var(--hc-cream); color: var(--hc-ink); font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+.hc-root *, .hc-root *::before, .hc-root *::after { box-sizing: border-box; }
+.hc-root h1, .hc-root h2, .hc-root h3, .hc-root p, .hc-root ul { margin: 0; padding: 0; }
 
-          <TabsContent value="dashboard" className="mt-6"><Dashboard /></TabsContent>
-          <TabsContent value="clients" className="mt-6"><Clients /></TabsContent>
-          <TabsContent value="time" className="mt-6"><TimeTracker /></TabsContent>
-          <TabsContent value="words" className="mt-6"><WordCounter /></TabsContent>
-          <TabsContent value="pdf" className="mt-6"><Tarifario /></TabsContent>
-        </Tabs>
-      </main>
-      <footer className="border-t border-border/60 py-8 text-center text-xs text-muted-foreground">
-        Prototipo HorasClaras v1.1 · datos guardados en tu navegador
-      </footer>
-    </div>
-  );
+.hc-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 18px 48px; display: flex; justify-content: space-between; align-items: center; background: rgba(247,243,238,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--hc-border); }
+.hc-logo { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--hc-ink); text-decoration: none; }
+.hc-logo span { color: var(--hc-accent); }
+.hc-nav-right { display: flex; gap: 14px; align-items: center; }
+.hc-nav-link { color: var(--hc-ink-soft); text-decoration: none; font-size: 14px; }
+.hc-nav-link:hover { color: var(--hc-accent); }
+.hc-nav-cta { background: var(--hc-ink); color: var(--hc-white); padding: 10px 22px; border-radius: 100px; font-size: 14px; font-weight: 500; text-decoration: none; transition: background 0.2s; }
+.hc-nav-cta:hover { background: var(--hc-accent); }
+
+.hc-hero { min-height: 100vh; display: flex; align-items: center; padding: 120px 48px 80px; position: relative; overflow: hidden; }
+.hc-hero::before { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(212,98,42,0.12) 0%, transparent 70%); pointer-events: none; }
+.hc-hero-inner { max-width: 720px; position: relative; z-index: 1; }
+.hc-tag { display: inline-block; background: var(--hc-accent-light); color: var(--hc-accent); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 14px; border-radius: 100px; margin-bottom: 28px; }
+.hc-hero h1 { font-family: 'Instrument Serif', serif; font-size: clamp(42px, 7vw, 72px); line-height: 1.1; color: var(--hc-ink); margin-bottom: 24px; }
+.hc-hero h1 em { font-style: italic; color: var(--hc-accent); }
+.hc-hero p { font-size: 18px; color: var(--hc-ink-soft); max-width: 520px; margin-bottom: 40px; line-height: 1.7; }
+.hc-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.hc-form input { flex: 1; min-width: 220px; padding: 14px 20px; border: 1px solid var(--hc-border); border-radius: 100px; font-size: 15px; font-family: inherit; background: var(--hc-white); color: var(--hc-ink); outline: none; }
+.hc-form input:focus { border-color: var(--hc-accent); }
+.hc-form button { padding: 14px 28px; background: var(--hc-accent); color: var(--hc-white); border: none; border-radius: 100px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s, transform 0.15s; }
+.hc-form button:hover { background: #b8501f; transform: translateY(-1px); }
+.hc-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.hc-hero-note { font-size: 13px; color: var(--hc-ink-soft); margin-top: 14px; }
+
+.hc-proof { border-top: 1px solid var(--hc-border); padding: 20px 48px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; background: var(--hc-white); }
+.hc-proof-item { font-size: 13px; color: var(--hc-ink-soft); display: flex; align-items: center; gap: 8px; }
+.hc-proof-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--hc-accent); flex-shrink: 0; }
+
+.hc-problem { padding: 100px 48px; max-width: 900px; margin: 0 auto; }
+.hc-problem h2 { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 4vw, 42px); line-height: 1.2; margin-bottom: 48px; color: var(--hc-ink); }
+.hc-problem h2 em { font-style: italic; color: var(--hc-accent); }
+.hc-pain-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.hc-pain { background: var(--hc-white); border: 1px solid var(--hc-border); border-radius: 16px; padding: 24px; }
+.hc-pain-icon { font-size: 24px; margin-bottom: 12px; }
+.hc-pain h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.hc-pain p { font-size: 14px; color: var(--hc-ink-soft); line-height: 1.6; }
+
+.hc-features { padding: 80px 48px; background: var(--hc-ink); color: var(--hc-white); }
+.hc-features-inner { max-width: 900px; margin: 0 auto; }
+.hc-features-tag { display: inline-block; background: rgba(212,98,42,0.3); color: #f09070; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 14px; border-radius: 100px; margin-bottom: 24px; }
+.hc-features h2 { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 4vw, 42px); margin-bottom: 48px; line-height: 1.2; }
+.hc-features h2 em { color: var(--hc-accent); font-style: italic; }
+.hc-feature-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.hc-feature { border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 28px; transition: border-color 0.2s; }
+.hc-feature:hover { border-color: rgba(212,98,42,0.5); }
+.hc-feature-num { font-family: 'Instrument Serif', serif; font-size: 36px; color: rgba(255,255,255,0.15); margin-bottom: 12px; }
+.hc-feature h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.hc-feature p { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+
+.hc-forwho { padding: 100px 48px; max-width: 900px; margin: 0 auto; }
+.hc-forwho h2 { font-family: 'Instrument Serif', serif; font-size: clamp(28px, 4vw, 42px); margin-bottom: 40px; line-height: 1.2; }
+.hc-forwho h2 em { font-style: italic; color: var(--hc-accent); }
+.hc-profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.hc-profile { background: var(--hc-white); border: 1px solid var(--hc-border); border-radius: 20px; padding: 28px; }
+.hc-profile-emoji { font-size: 32px; margin-bottom: 14px; }
+.hc-profile h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.hc-profile p { font-size: 14px; color: var(--hc-ink-soft); line-height: 1.6; }
+.hc-profile ul { margin-top: 12px; padding-left: 18px; }
+.hc-profile ul li { font-size: 13px; color: var(--hc-ink-soft); margin-bottom: 4px; }
+
+.hc-final { padding: 100px 48px; text-align: center; background: var(--hc-accent-light); border-top: 1px solid #e8d5c8; }
+.hc-final h2 { font-family: 'Instrument Serif', serif; font-size: clamp(32px, 5vw, 52px); line-height: 1.15; margin: 0 auto 20px; color: var(--hc-ink); max-width: 600px; }
+.hc-final h2 em { font-style: italic; color: var(--hc-accent); }
+.hc-final p { font-size: 17px; color: var(--hc-ink-soft); margin-bottom: 36px; }
+.hc-final form { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.hc-final input { padding: 14px 22px; border: 1px solid #d0bfb3; border-radius: 100px; font-size: 15px; font-family: inherit; background: var(--hc-white); color: var(--hc-ink); width: 280px; outline: none; }
+.hc-final input:focus { border-color: var(--hc-accent); }
+.hc-final button { padding: 14px 28px; background: var(--hc-ink); color: var(--hc-white); border: none; border-radius: 100px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.2s; }
+.hc-final button:hover { background: var(--hc-accent); }
+.hc-final button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.hc-footer { padding: 24px 48px; text-align: center; font-size: 13px; color: var(--hc-ink-soft); border-top: 1px solid var(--hc-border); }
+
+@media (max-width: 640px) {
+  .hc-nav { padding: 16px 20px; }
+  .hc-hero { padding: 100px 20px 60px; }
+  .hc-proof { padding: 16px 20px; gap: 16px; }
+  .hc-problem, .hc-forwho { padding: 60px 20px; }
+  .hc-features { padding: 60px 20px; }
+  .hc-final { padding: 60px 20px; }
+  .hc-footer { padding: 20px; }
+  .hc-profiles { grid-template-columns: 1fr; }
+}
+`;
+
+function useFont() {
+  useEffect(() => {
+    const id = "hc-fonts";
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap";
+    document.head.appendChild(link);
+  }, []);
 }
 
-function Header() {
-  const { store, reset } = useStore();
-  return (
-    <header className="border-b border-border/60 bg-card/70 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <span className="font-display text-xl leading-none">H</span>
-          </div>
-          <div>
-            <h1 className="font-display text-2xl leading-tight sm:text-3xl">HorasClaras</h1>
-            <p className="text-xs text-muted-foreground">Hola, {store.profileName} · {store.clients.length} clientes activos</p>
-          </div>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => { reset(); toast.success("Demo restaurada"); }} className="gap-1.5 text-muted-foreground">
-          <RotateCcw className="h-3.5 w-3.5" /> Reset demo
-        </Button>
-      </div>
-    </header>
-  );
-}
+function WaitlistForm({ source, variant }: { source: string; variant: "hero" | "final" }) {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-// ---------- Dashboard ----------
-function Dashboard() {
-  const { store } = useStore();
-  const month = new Date().toISOString().slice(0, 7);
-
-  const monthEntries = store.entries.filter((e) => e.date.startsWith(month));
-  const billableMin = monthEntries.filter((e) => e.kind === "billable").reduce((s, e) => s + e.minutes, 0);
-  const planMin = monthEntries.filter((e) => e.kind === "planning").reduce((s, e) => s + e.minutes, 0);
-  const monthJobs = store.jobs.filter((j) => j.date.startsWith(month));
-
-  let projected = monthJobs.reduce((s, j) => s + j.pricedAmount, 0);
-  for (const e of monthEntries.filter((x) => x.kind === "billable")) {
-    const c = store.clients.find((x) => x.id === e.clientId);
-    if (c?.type === "hour") projected += (e.minutes / 60) * c.rate;
-  }
-
-  const perClient = store.clients.map((c) => {
-    const ent = monthEntries.filter((e) => e.clientId === c.id);
-    const min = ent.filter((e) => e.kind === "billable").reduce((s, e) => s + e.minutes, 0);
-    const planning = ent.filter((e) => e.kind === "planning").reduce((s, e) => s + e.minutes, 0);
-    const jobs = monthJobs.filter((j) => j.clientId === c.id);
-    const words = jobs.reduce((s, j) => s + j.totalWords, 0);
-    const amount = c.type === "hour" ? (min / 60) * c.rate : jobs.reduce((s, j) => s + j.pricedAmount, 0);
-    return { client: c, billable: min, planning, words, amount };
-  });
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Mes en curso</p>
-        <h2 className="font-display text-4xl sm:text-5xl">
-          {formatMoney(projected, store.currency)}
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">Ingresos proyectados este mes</p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat label="Horas facturables" value={minutesToHuman(billableMin)} tone="primary" />
-        <Stat label="Horas planificación" value={minutesToHuman(planMin)} tone="muted" />
-        <Stat label="Trabajos por palabra" value={`${monthJobs.length}`} tone="accent" />
-      </div>
-
-      <Card className="overflow-hidden border-border/60 p-0">
-        <div className="border-b border-border/60 bg-secondary/40 px-5 py-3">
-          <h3 className="font-display text-xl">Por cliente</h3>
-        </div>
-        <div className="divide-y divide-border/60">
-          {perClient.length === 0 && <p className="p-6 text-sm text-muted-foreground">Todavía no hay clientes.</p>}
-          {perClient.map(({ client, billable, planning, words, amount }) => (
-            <div key={client.id} className="grid grid-cols-2 items-center gap-3 px-5 py-4 sm:grid-cols-5">
-              <div className="col-span-2 sm:col-span-2">
-                <p className="font-medium">{client.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {client.type === "hour" ? `${formatMoney(client.rate)}/h` : `${formatMoney(client.rate)}/palabra`}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-foreground">{minutesToHuman(billable)}</p>
-                <p className="text-xs text-muted-foreground">facturable</p>
-              </div>
-              <div className="text-sm">
-                <p className="text-foreground">{client.type === "word" ? `${words} palabras` : minutesToHuman(planning)}</p>
-                <p className="text-xs text-muted-foreground">{client.type === "word" ? "traducidas" : "planificación"}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-display text-xl">{formatMoney(amount, "ARS")}</p>
-                <p className="text-xs text-muted-foreground">a cobrar</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function Stat({ label, value, tone }: { label: string; value: string; tone: "primary" | "muted" | "accent" }) {
-  const bg = tone === "primary" ? "bg-primary text-primary-foreground" : tone === "accent" ? "bg-accent text-accent-foreground" : "bg-secondary text-secondary-foreground";
-  return (
-    <div className={`rounded-2xl ${bg} px-5 py-4`}>
-      <p className="text-xs uppercase tracking-wider opacity-80">{label}</p>
-      <p className="mt-1 font-display text-3xl">{value}</p>
-    </div>
-  );
-}
-
-// ---------- Clientes ----------
-function Clients() {
-  const { store, update } = useStore();
-  const [draft, setDraft] = useState<Partial<Client>>({ type: "hour", pricingMode: "auto", repetitionDiscount: 50 });
-
-  const add = () => {
-    if (!draft.name || !draft.rate) return toast.error("Completá nombre y tarifa");
-    const c: Client = {
-      id: uid(),
-      name: draft.name!,
-      type: (draft.type as "hour" | "word") ?? "hour",
-      rate: Number(draft.rate),
-      pricingMode: draft.pricingMode ?? "auto",
-      repetitionDiscount: draft.repetitionDiscount ?? 50,
-    };
-    if (store.clients.length >= 10) return toast.error("Máximo 10 clientes en v1");
-    update((s) => ({ ...s, clients: [...s.clients, c] }));
-    setDraft({ type: "hour", pricingMode: "auto", repetitionDiscount: 50 });
-    toast.success(`${c.name} agregado`);
-  };
-
-  const remove = (id: string) => {
-    update((s) => ({
-      ...s,
-      clients: s.clients.filter((c) => c.id !== id),
-      entries: s.entries.filter((e) => e.clientId !== id),
-      jobs: s.jobs.filter((j) => j.clientId !== id),
-    }));
-  };
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <Card className="border-border/60 p-0">
-        <div className="divide-y divide-border/60">
-          {store.clients.map((c) => (
-            <div key={c.id} className="px-5 py-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-medium">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {c.type === "hour" ? `Por hora · ${formatMoney(c.rate)}/h` : `Por palabra · ${formatMoney(c.rate)}/palabra · modo ${c.pricingMode}`}
-                  </p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => remove(c.id)}>
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div>
-                  <Label className="text-xs">Tarifa</Label>
-                  <Input
-                    type="number"
-                    value={c.rate}
-                    onChange={(e) =>
-                      update((s) => ({
-                        ...s,
-                        clients: s.clients.map((x) => x.id === c.id ? { ...x, rate: Number(e.target.value) } : x),
-                      }))
-                    }
-                  />
-                </div>
-                {c.type === "word" && (
-                  <div>
-                    <Label className="text-xs">% desc. repeticiones</Label>
-                    <Input
-                      type="number"
-                      value={c.repetitionDiscount ?? 50}
-                      onChange={(e) =>
-                        update((s) => ({
-                          ...s,
-                          clients: s.clients.map((x) => x.id === c.id ? { ...x, repetitionDiscount: Number(e.target.value) } : x),
-                        }))
-                      }
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="border-border/60 p-5">
-        <h3 className="font-display text-xl">Nuevo cliente</h3>
-        <p className="text-xs text-muted-foreground">Máx 10 en v1 · {store.clients.length}/10</p>
-        <div className="mt-4 space-y-3">
-          <div>
-            <Label>Nombre</Label>
-            <Input value={draft.name ?? ""} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ej: Lucas Pereyra" />
-          </div>
-          <div>
-            <Label>Tipo de tarifa</Label>
-            <Select value={draft.type} onValueChange={(v) => setDraft({ ...draft, type: v as "hour" | "word" })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="hour">Por hora</SelectItem>
-                <SelectItem value="word">Por palabra</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>{draft.type === "word" ? "Tarifa por palabra (ARS)" : "Tarifa por hora (ARS)"}</Label>
-            <Input type="number" value={draft.rate ?? ""} onChange={(e) => setDraft({ ...draft, rate: Number(e.target.value) })} />
-          </div>
-          {draft.type === "word" && (
-            <>
-              <div>
-                <Label>Modo de precio</Label>
-                <Select value={draft.pricingMode} onValueChange={(v) => setDraft({ ...draft, pricingMode: v as "auto" | "manual" })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="auto">Automático (palabras × tarifa)</SelectItem>
-                    <SelectItem value="manual">Manual (ajusto yo)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>% descuento repeticiones</Label>
-                <Input type="number" value={draft.repetitionDiscount ?? 50} onChange={(e) => setDraft({ ...draft, repetitionDiscount: Number(e.target.value) })} />
-              </div>
-            </>
-          )}
-          <Button onClick={add} className="w-full gap-2"><Plus className="h-4 w-4" /> Agregar</Button>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// ---------- Horas ----------
-function TimeTracker() {
-  const { store, update } = useStore();
-  const hourClients = store.clients.filter((c) => c.type === "hour");
-  const [draft, setDraft] = useState({
-    clientId: hourClients[0]?.id ?? "",
-    minutes: 60,
-    kind: "billable" as "billable" | "planning",
-    note: "",
-    date: new Date().toISOString().slice(0, 10),
-  });
-
-  const add = () => {
-    if (!draft.clientId) return toast.error("Elegí un cliente");
-    update((s) => ({
-      ...s,
-      entries: [{ id: uid(), ...draft }, ...s.entries],
-    }));
-    toast.success("Hora registrada");
-    setDraft({ ...draft, note: "" });
-  };
-
-  const remove = (id: string) =>
-    update((s) => ({ ...s, entries: s.entries.filter((e) => e.id !== id) }));
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-      <Card className="order-2 border-border/60 p-5 lg:order-1">
-        <h3 className="font-display text-xl">Registrar</h3>
-        <div className="mt-4 space-y-3">
-          <div>
-            <Label>Cliente</Label>
-            <Select value={draft.clientId} onValueChange={(v) => setDraft({ ...draft, clientId: v })}>
-              <SelectTrigger><SelectValue placeholder="Elegí un cliente" /></SelectTrigger>
-              <SelectContent>
-                {hourClients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {hourClients.length === 0 && <p className="mt-1 text-xs text-muted-foreground">Creá primero un cliente por hora.</p>}
-          </div>
-          <div>
-            <Label>Fecha</Label>
-            <Input type="date" value={draft.date} onChange={(e) => setDraft({ ...draft, date: e.target.value })} />
-          </div>
-          <div>
-            <Label>Duración (minutos)</Label>
-            <Input type="number" value={draft.minutes} onChange={(e) => setDraft({ ...draft, minutes: Number(e.target.value) })} />
-          </div>
-          <div>
-            <Label>Tipo</Label>
-            <Select value={draft.kind} onValueChange={(v) => setDraft({ ...draft, kind: v as "billable" | "planning" })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="billable">Facturable</SelectItem>
-                <SelectItem value="planning">Planificación propia</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Nota (opcional)</Label>
-            <Input value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} placeholder="Clase grupal B1…" />
-          </div>
-          <Button onClick={add} className="w-full gap-2"><Plus className="h-4 w-4" /> Registrar hora</Button>
-        </div>
-      </Card>
-
-      <Card className="order-1 border-border/60 p-0 lg:order-2">
-        <div className="border-b border-border/60 bg-secondary/40 px-5 py-3">
-          <h3 className="font-display text-xl">Últimos registros</h3>
-        </div>
-        <div className="divide-y divide-border/60">
-          {store.entries.length === 0 && <p className="p-6 text-sm text-muted-foreground">Sin registros todavía.</p>}
-          {store.entries.map((e) => {
-            const c = store.clients.find((x) => x.id === e.clientId);
-            return (
-              <div key={e.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{c?.name ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">{e.date} · {e.note || "sin nota"}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={e.kind === "billable" ? "default" : "secondary"} className={e.kind === "billable" ? "bg-primary text-primary-foreground" : ""}>
-                    {e.kind === "billable" ? "facturable" : "planificación"}
-                  </Badge>
-                  <span className="w-16 text-right text-sm tabular-nums">{minutesToHuman(e.minutes)}</span>
-                  <Button variant="ghost" size="icon" onClick={() => remove(e.id)}><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// ---------- Palabras ----------
-function WordCounter() {
-  const { store, update } = useStore();
-  const wordClients = store.clients.filter((c) => c.type === "word");
-  const [clientId, setClientId] = useState(wordClients[0]?.id ?? "");
-  const [title, setTitle] = useState("");
-  const [text, setText] = useState("");
-  const [manualPrice, setManualPrice] = useState<number | "">("");
-
-  const client = wordClients.find((c) => c.id === clientId);
-  const counts = useMemo(() => countWords(text), [text]);
-
-  const discount = client?.repetitionDiscount ?? 50;
-  const billable = counts.total - counts.repeated * (discount / 100);
-  const auto = client ? billable * client.rate : 0;
-
-  const finalPrice =
-    client?.pricingMode === "manual"
-      ? typeof manualPrice === "number" ? manualPrice : auto
-      : auto;
-
-  const save = () => {
-    if (!client || !text.trim()) return toast.error("Falta cliente o texto");
-    update((s) => ({
-      ...s,
-      jobs: [
-        {
-          id: uid(),
-          clientId: client.id,
-          date: new Date().toISOString().slice(0, 10),
-          title: title || "Sin título",
-          totalWords: counts.total,
-          repeatedWords: counts.repeated,
-          pricedAmount: Math.round(finalPrice),
-        },
-        ...s.jobs,
-      ],
-    }));
-    toast.success("Presupuesto guardado");
-    setText(""); setTitle(""); setManualPrice("");
-  };
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-      <Card className="border-border/60 p-5">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Label>Cliente (por palabra)</Label>
-            <Select value={clientId} onValueChange={setClientId}>
-              <SelectTrigger><SelectValue placeholder="Elegí un cliente" /></SelectTrigger>
-              <SelectContent>
-                {wordClients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Título del documento</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Contrato comercial" />
-          </div>
-        </div>
-        <div className="mt-4">
-          <Label>Pegá el texto a traducir</Label>
-          <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={14} placeholder="Pegá acá el documento o un fragmento…" className="resize-y" />
-        </div>
-      </Card>
-
-      <Card className="border-border/60 p-5">
-        <h3 className="font-display text-xl">Presupuesto</h3>
-        <div className="mt-4 space-y-2 text-sm">
-          <Row k="Palabras totales" v={counts.total.toString()} />
-          <Row k="Únicas" v={counts.unique.toString()} />
-          <Row k="Repeticiones" v={counts.repeated.toString()} />
-          <Row k={`Descuento aplicado`} v={`${discount}%`} />
-          <Row k="Palabras facturables" v={billable.toFixed(0)} />
-          <Row k="Tarifa" v={client ? `${formatMoney(client.rate)}/palabra` : "—"} />
-        </div>
-        <div className="mt-5 rounded-xl bg-secondary/60 p-4">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Total {client?.pricingMode === "manual" ? "(editable)" : "automático"}</p>
-          {client?.pricingMode === "manual" ? (
-            <Input
-              type="number"
-              className="mt-1 border-0 bg-transparent p-0 font-display !text-3xl shadow-none focus-visible:ring-0"
-              value={manualPrice === "" ? Math.round(auto) : manualPrice}
-              onChange={(e) => setManualPrice(e.target.value === "" ? "" : Number(e.target.value))}
-            />
-          ) : (
-            <p className="mt-1 font-display text-3xl">{formatMoney(finalPrice, store.currency)}</p>
-          )}
-        </div>
-        <Button onClick={save} className="mt-4 w-full gap-2"><Plus className="h-4 w-4" /> Guardar presupuesto</Button>
-      </Card>
-    </div>
-  );
-}
-
-function Row({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex justify-between">
-      <span className="text-muted-foreground">{k}</span>
-      <span className="font-medium tabular-nums">{v}</span>
-    </div>
-  );
-}
-
-// ---------- Tarifario PDF ----------
-function Tarifario() {
-  const { store } = useStore();
-  const month = new Date().toISOString().slice(0, 7);
-  const monthLabel = new Date().toLocaleDateString("es-AR", { month: "long", year: "numeric" });
-
-  const rows = store.clients.map((c) => {
-    const ent = store.entries.filter((e) => e.clientId === c.id && e.date.startsWith(month) && e.kind === "billable");
-    const min = ent.reduce((s, e) => s + e.minutes, 0);
-    const jobs = store.jobs.filter((j) => j.clientId === c.id && j.date.startsWith(month));
-    const words = jobs.reduce((s, j) => s + j.totalWords, 0);
-    const amount = c.type === "hour" ? (min / 60) * c.rate : jobs.reduce((s, j) => s + j.pricedAmount, 0);
-    return { c, min, words, amount };
-  });
-  const total = rows.reduce((s, r) => s + r.amount, 0);
-
-  const generate = () => {
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const pageW = doc.internal.pageSize.getWidth();
-    let y = 60;
-
-    doc.setFont("times", "italic");
-    doc.setFontSize(28);
-    doc.text("HorasClaras", 50, y);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(120);
-    doc.text(`Tarifario · ${monthLabel}`, pageW - 50, y, { align: "right" });
-    y += 30;
-
-    doc.setTextColor(40);
-    doc.setFontSize(12);
-    doc.text(store.profileName, 50, y);
-    y += 30;
-
-    doc.setDrawColor(220);
-    doc.line(50, y, pageW - 50, y);
-    y += 20;
-
-    doc.setFontSize(10);
-    doc.setTextColor(120);
-    doc.text("Cliente", 50, y);
-    doc.text("Detalle", 230, y);
-    doc.text("Tarifa", 360, y);
-    doc.text("Total", pageW - 50, y, { align: "right" });
-    y += 8;
-    doc.line(50, y, pageW - 50, y);
-    y += 18;
-
-    doc.setTextColor(30);
-    doc.setFontSize(11);
-    for (const r of rows) {
-      if (r.amount === 0 && r.min === 0 && r.words === 0) continue;
-      doc.text(r.c.name, 50, y);
-      doc.text(
-        r.c.type === "hour" ? `${minutesToHuman(r.min)} trabajadas` : `${r.words} palabras`,
-        230, y,
-      );
-      doc.text(
-        r.c.type === "hour" ? `${formatMoney(r.c.rate)}/h` : `${formatMoney(r.c.rate)}/pal.`,
-        360, y,
-      );
-      doc.text(formatMoney(r.amount), pageW - 50, y, { align: "right" });
-      y += 22;
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.includes("@")) {
+      toast.error("Ingresá un email válido");
+      return;
     }
-
-    y += 10;
-    doc.setDrawColor(180);
-    doc.line(50, y, pageW - 50, y);
-    y += 24;
-    doc.setFontSize(14);
-    doc.text("Total a cobrar", 50, y);
-    doc.setFont("times", "italic");
-    doc.setFontSize(22);
-    doc.text(formatMoney(total), pageW - 50, y, { align: "right" });
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(140);
-    doc.text(
-      "Generado con HorasClaras · documento informativo, no es factura legal.",
-      pageW / 2, doc.internal.pageSize.getHeight() - 40, { align: "center" },
-    );
-
-    doc.save(`tarifario-${month}.pdf`);
-    toast.success("Tarifario PDF generado");
+    setLoading(true);
+    const { error } = await supabase
+      .from("waitlist_signups")
+      .insert({ email: email.trim().toLowerCase(), source });
+    setLoading(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast.success("Ya estás anotada — te avisamos cuando abramos.");
+        setEmail("");
+        return;
+      }
+      toast.error("No pudimos anotarte. Probá de nuevo en un rato.");
+      return;
+    }
+    setEmail("");
+    toast.success("¡Listo! Te avisamos cuando abramos el acceso.");
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <Card className="border-border/60 p-0">
-        <div className="border-b border-border/60 bg-secondary/40 px-5 py-3">
-          <h3 className="font-display text-xl">Preview · {monthLabel}</h3>
+    <form className={variant === "hero" ? "hc-form" : ""} onSubmit={onSubmit}>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="tu@email.com"
+        required
+      />
+      <button type="submit" disabled={loading}>
+        {loading ? "Anotando…" : "Quiero acceso anticipado"}
+      </button>
+    </form>
+  );
+}
+
+function Landing() {
+  useFont();
+  return (
+    <div className="hc-root">
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <Toaster position="top-center" richColors />
+
+      <nav className="hc-nav">
+        <a className="hc-logo" href="#top">
+          Horas<span>Claras</span>
+        </a>
+        <div className="hc-nav-right">
+          <Link to="/app" className="hc-nav-link">
+            Probar la app
+          </Link>
+          <a className="hc-nav-cta" href="#lista">
+            Quiero acceso anticipado
+          </a>
         </div>
-        <div className="space-y-3 p-6">
-          <p className="font-display text-3xl">{store.profileName}</p>
-          <div className="divide-y divide-border/60 rounded-xl border border-border/60">
-            {rows.map((r) => (
-              <div key={r.c.id} className="grid grid-cols-4 items-center gap-3 px-4 py-3 text-sm">
-                <span className="font-medium">{r.c.name}</span>
-                <span className="text-muted-foreground">{r.c.type === "hour" ? minutesToHuman(r.min) : `${r.words} pal.`}</span>
-                <span className="text-muted-foreground">{r.c.type === "hour" ? `${formatMoney(r.c.rate)}/h` : `${formatMoney(r.c.rate)}/pal.`}</span>
-                <span className="text-right font-medium tabular-nums">{formatMoney(r.amount)}</span>
+      </nav>
+
+      <section className="hc-hero" id="top">
+        <div className="hc-hero-inner">
+          <div className="hc-tag">Para profes y traductoras freelance</div>
+          <h1>
+            Sabé exactamente
+            <br />
+            cuánto cobrarle
+            <br />a <em>cada cliente</em>
+          </h1>
+          <p>
+            Registrá tus horas y trabajos de traducción, y generá un tarifario profesional en PDF
+            listo para enviar por WhatsApp — en menos de 2 minutos.
+          </p>
+          <div id="lista">
+            <WaitlistForm source="hero" variant="hero" />
+          </div>
+          <p className="hc-hero-note">
+            Gratis durante el lanzamiento · Sin tarjeta de crédito
+          </p>
+        </div>
+      </section>
+
+      <div className="hc-proof">
+        <div className="hc-proof-item">
+          <span className="hc-proof-dot" />
+          Validado con profes y traductoras reales
+        </div>
+        <div className="hc-proof-item">
+          <span className="hc-proof-dot" />
+          Funciona en celular y computadora
+        </div>
+        <div className="hc-proof-item">
+          <span className="hc-proof-dot" />
+          Todo en castellano
+        </div>
+        <div className="hc-proof-item">
+          <span className="hc-proof-dot" />
+          Sin planillas ni cuentas manuales
+        </div>
+      </div>
+
+      <section className="hc-problem">
+        <h2>
+          ¿Cuántas horas perdés
+          <br />
+          por mes en <em>administración</em>
+          <br />
+          que no te paga nadie?
+        </h2>
+        <div className="hc-pain-grid">
+          {[
+            { i: "😶", h: "Fin de mes sin claridad", p: "No sabés bien cuántas horas trabajaste ni cuánto cobrarle a cada cliente. Terminás cobrando de menos." },
+            { i: "📊", h: "La planilla que nadie entiende", p: "Un Excel con fórmulas que se rompen, datos desactualizados y presupuestos hechos a mano en WhatsApp." },
+            { i: "🔢", h: "Contar palabras a mano", p: "Pegar el texto en Word, contar, calcular el descuento por repeticiones, multiplicar por la tarifa... cada vez." },
+            { i: "⏳", h: "Tiempo que no cobra", p: "Entre 30 y 60 minutos por semana en tareas administrativas. Tiempo que podría ser otra clase o descanso." },
+          ].map((c) => (
+            <div key={c.h} className="hc-pain">
+              <div className="hc-pain-icon">{c.i}</div>
+              <h3>{c.h}</h3>
+              <p>{c.p}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="hc-features">
+        <div className="hc-features-inner">
+          <div className="hc-features-tag">Cómo funciona</div>
+          <h2>
+            Todo lo que necesitás,
+            <br />
+            <em>nada que no usás</em>
+          </h2>
+          <div className="hc-feature-list">
+            {[
+              { n: "01", h: "Registrá tus horas", p: "Cliente, fecha, duración y tipo (facturable o planificación). En 30 segundos. Desde el celular entre clase y clase." },
+              { n: "02", h: "Cotizador de palabras", p: "Pegás el texto y la app cuenta sola: total, únicas, repetidas. Aplica el descuento configurado y te da el precio." },
+              { n: "03", h: "Tarifario PDF en un clic", p: "Elegís el cliente y el mes. La app genera un PDF prolijo con el detalle completo, listo para mandar por WhatsApp." },
+              { n: "04", h: "Dashboard del mes", p: "Ves de un vistazo cuánto trabajaste, para quién, y cuánto vas a cobrar. Sin buscar en planillas ni hacer cuentas." },
+            ].map((f) => (
+              <div key={f.n} className="hc-feature">
+                <div className="hc-feature-num">{f.n}</div>
+                <h3>{f.h}</h3>
+                <p>{f.p}</p>
               </div>
             ))}
           </div>
-          <div className="flex items-center justify-between border-t border-border/60 pt-4">
-            <span className="text-muted-foreground">Total a cobrar</span>
-            <span className="font-display text-3xl">{formatMoney(total)}</span>
+        </div>
+      </section>
+
+      <section className="hc-forwho">
+        <h2>
+          Hecho para <em>vos</em>
+        </h2>
+        <div className="hc-profiles">
+          <div className="hc-profile">
+            <div className="hc-profile-emoji">👩‍🏫</div>
+            <h3>Profesora de inglés</h3>
+            <p>
+              Tenés varios alumnos con distintos horarios y tarifas. Querés saber exactamente
+              cuántas horas diste en el mes y generar el resumen para cada uno.
+            </p>
+            <ul>
+              <li>Registro de horas por cliente</li>
+              <li>Separación facturable / planificación</li>
+              <li>Tarifario PDF listo para enviar</li>
+            </ul>
+          </div>
+          <div className="hc-profile">
+            <div className="hc-profile-emoji">📝</div>
+            <h3>Traductora freelance</h3>
+            <p>
+              Cobrás por palabra y necesitás contar, calcular descuentos por repeticiones y
+              presupuestar rápido. Sin perder tiempo en cuentas manuales.
+            </p>
+            <ul>
+              <li>Cotizador automático de palabras</li>
+              <li>Descuento por repeticiones configurable</li>
+              <li>Presupuesto listo en segundos</li>
+            </ul>
           </div>
         </div>
-      </Card>
+      </section>
 
-      <Card className="border-border/60 p-5">
-        <h3 className="font-display text-xl">Listo para enviar</h3>
-        <p className="mt-1 text-sm text-muted-foreground">Descargá el PDF y compartilo por WhatsApp o email.</p>
-        <Button onClick={generate} className="mt-4 w-full gap-2" size="lg">
-          <Download className="h-4 w-4" /> Generar tarifario PDF
-        </Button>
-        <p className="mt-3 text-xs text-muted-foreground">
-          v1: PDF informativo. En post-MVP: envío por email desde la app.
-        </p>
-      </Card>
+      <section className="hc-final">
+        <h2>
+          Empezá el mes que viene
+          <br />
+          sabiendo <em>exactamente</em>
+          <br />
+          cuánto cobrar
+        </h2>
+        <p>Anotate y sé de las primeras en acceder gratis.</p>
+        <WaitlistForm source="cta_final" variant="final" />
+      </section>
+
+      <footer className="hc-footer">
+        © 2026 HorasClaras · Para profes y traductoras freelance de Argentina
+      </footer>
     </div>
   );
 }
