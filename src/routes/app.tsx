@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
-export const Route = createFileRoute("/")({ component: Index });
+export const Route = createFileRoute("/app")({ component: Index });
 
 function Index() {
   return (
