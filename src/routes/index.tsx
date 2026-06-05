@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast, Toaster } from "sonner";
+import { ChatWidget } from "@/components/ChatWidget";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -339,6 +340,7 @@ function Landing() {
       <footer className="hc-footer">
         © 2026 HorasClaras · Para profes y traductoras freelance de Argentina
       </footer>
+      <ChatWidget />
     </div>
   );
 }
