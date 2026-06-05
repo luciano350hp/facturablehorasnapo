@@ -8,7 +8,6 @@ export function ChatWidget() {
     let mounted = true;
     (async () => {
       const { createChat } = await import("@n8n/chat");
-      // @ts-expect-error - n8n chat ships its own css
       await import("@n8n/chat/style.css");
       if (!mounted) return;
       createChat({
