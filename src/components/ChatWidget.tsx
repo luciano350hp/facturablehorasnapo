@@ -6,9 +6,17 @@ const WEBHOOK_URL =
 export function ChatWidget() {
   useEffect(() => {
     let mounted = true;
+    // Load n8n chat stylesheet via CDN to bypass Vite's lightningcss
+    // (which rejects the package's :global(...) selectors).
+    if (!document.getElementById("n8n-chat-css")) {
+      const link = document.createElement("link");
+      link.id = "n8n-chat-css";
+      link.rel = "stylesheet";
+      link.href = "https://cdn.jsdelivr.net/npm/@n8n/chat@1.23.0/dist/style.css";
+      document.head.appendChild(link);
+    }
     (async () => {
       const { createChat } = await import("@n8n/chat");
-      await import("@n8n/chat/style.css");
       if (!mounted) return;
       createChat({
         webhookUrl: WEBHOOK_URL,
