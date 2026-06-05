@@ -340,6 +340,7 @@ function Landing() {
       <footer className="hc-footer">
         © 2026 HorasClaras · Para profes y traductoras freelance de Argentina
       </footer>
+      <ChatWidget />
     </div>
   );
 }
