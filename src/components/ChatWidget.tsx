@@ -3,11 +3,16 @@ import { useEffect } from "react";
 const WEBHOOK_URL =
   "https://napoeltibu.app.n8n.cloud/webhook/364f2dcc-4366-4064-aa70-e962346850fd/chat";
 
+declare global {
+  interface Window {
+    __hcN8nChatInitialized?: boolean;
+  }
+}
+
 export function ChatWidget() {
   useEffect(() => {
-    let mounted = true;
-    // Load n8n chat stylesheet via CDN to bypass Vite's lightningcss
-    // (which rejects the package's :global(...) selectors).
+    if (window.__hcN8nChatInitialized) return;
+
     if (!document.getElementById("n8n-chat-css")) {
       const link = document.createElement("link");
       link.id = "n8n-chat-css";
@@ -15,33 +20,35 @@ export function ChatWidget() {
       link.href = "https://cdn.jsdelivr.net/npm/@n8n/chat@1.23.0/dist/style.css";
       document.head.appendChild(link);
     }
-    (async () => {
-      const { createChat } = await import("@n8n/chat");
-      if (!mounted) return;
+
+    const script = document.createElement("script");
+    script.id = "n8n-chat-script";
+    script.type = "module";
+    script.textContent = `
+      import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat@1.23.0/dist/chat.bundle.es.js';
       createChat({
-        webhookUrl: WEBHOOK_URL,
-        mode: "window",
+        webhookUrl: ${JSON.stringify(WEBHOOK_URL)},
+        mode: 'window',
         showWelcomeScreen: false,
-        defaultLanguage: "en",
+        defaultLanguage: 'en',
         initialMessages: [
-          "¡Hola! Soy Clara, la asistente de HorasClaras 🙂",
-          "¿Tenés alguna duda sobre la app? Preguntame lo que quieras.",
+          '¡Hola! Soy Clara, la asistente de HorasClaras 🙂',
+          '¿Tenés alguna duda sobre la app? Preguntame lo que quieras.',
         ],
         i18n: {
           en: {
-            title: "Clara — HorasClaras",
-            subtitle: "Resuelvo tus dudas en segundos",
-            footer: "",
-            getStarted: "Nueva conversación",
-            inputPlaceholder: "Escribí tu pregunta…",
-            closeButtonTooltip: "Cerrar",
+            title: 'Clara — HorasClaras',
+            subtitle: 'Resuelvo tus dudas en segundos',
+            footer: '',
+            getStarted: 'Nueva conversación',
+            inputPlaceholder: 'Escribí tu pregunta…',
+            closeButtonTooltip: 'Cerrar',
           },
         },
       });
-    })();
-    return () => {
-      mounted = false;
-    };
+    `;
+    document.body.appendChild(script);
+    window.__hcN8nChatInitialized = true;
   }, []);
 
   return (
