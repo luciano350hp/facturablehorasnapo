@@ -65,15 +65,36 @@ export function ChatWidget() {
           message: text,
         }),
       });
+      const raw = (await res.text()).trim();
       let reply = "";
-      const ct = res.headers.get("content-type") || "";
-      if (ct.includes("application/json")) {
-        const json = await res.json();
-        reply = extractText(json);
-      } else {
-        reply = (await res.text()).trim();
+      // n8n Chat Trigger streaming: NDJSON con {type:"item",content:"..."}
+      if (raw.includes('"type"') && raw.includes('"item"')) {
+        const lines = raw.split(/\r?\n/).filter(Boolean);
+        const parts: string[] = [];
+        for (const line of lines) {
+          try {
+            const obj = JSON.parse(line);
+            if (obj?.type === "item" && typeof obj.content === "string") {
+              parts.push(obj.content);
+            } else if (obj?.type === "end" && typeof obj?.content === "string") {
+              parts.push(obj.content);
+            }
+          } catch {
+            /* ignore parse errors per line */
+          }
+        }
+        reply = parts.join("").trim();
+      }
+      if (!reply) {
+        // Fallback: respuesta JSON única
+        try {
+          reply = extractText(JSON.parse(raw));
+        } catch {
+          reply = raw;
+        }
       }
       if (!reply) reply = "Disculpá, no pude generar una respuesta en este momento. Probá de nuevo en un ratito 🙏";
+
       setMessages((m) => [...m, { role: "bot", text: reply }]);
     } catch {
       setMessages((m) => [
