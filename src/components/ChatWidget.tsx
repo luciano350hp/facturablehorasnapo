@@ -1,34 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 
-const WEBHOOK_URL =
-  "https://napoeltibu.app.n8n.cloud/webhook/364f2dcc-4366-4064-aa70-e962346850fd/chat";
+const CHAT_URL = "/api/chat";
 
 type Msg = { role: "user" | "bot"; text: string };
 
-function extractText(data: unknown): string {
-  if (data == null) return "";
-  if (typeof data === "string") return data;
-  if (Array.isArray(data)) {
-    for (const item of data) {
-      const t = extractText(item);
-      if (t) return t;
-    }
-    return "";
-  }
-  if (typeof data === "object") {
-    const obj = data as Record<string, unknown>;
-    // Common n8n Chat Trigger / AI Agent response keys
-    const keys = ["output", "text", "message", "response", "answer", "content", "reply", "data"];
-    for (const k of keys) {
-      if (k in obj) {
-        const t = extractText(obj[k]);
-        if (t) return t;
-      }
-    }
-  }
-  return "";
-}
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
