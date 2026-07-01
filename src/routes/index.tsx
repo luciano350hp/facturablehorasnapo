@@ -189,7 +189,7 @@ function Landing() {
 
       <nav className="hc-nav">
         <a className="hc-logo" href="#top">
-          Horas<span>Claras</span>
+          Freelance<span>Track</span>
         </a>
         <div className="hc-nav-right">
           <Link to="/app" className="hc-nav-link">
