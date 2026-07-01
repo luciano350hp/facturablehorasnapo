@@ -220,6 +220,9 @@ function Landing() {
           <p className="hc-hero-note">
             Gratis durante el lanzamiento · Sin tarjeta de crédito
           </p>
+          <p className="hc-hero-note" style={{ color: "#b8501f", fontWeight: 500 }}>
+            ⚠️ Esto es un prototipo de demostración. No ingreses datos reales ni confidenciales.
+          </p>
         </div>
       </section>
 
