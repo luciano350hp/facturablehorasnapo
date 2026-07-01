@@ -1,34 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 
-const WEBHOOK_URL =
-  "https://napoeltibu.app.n8n.cloud/webhook/364f2dcc-4366-4064-aa70-e962346850fd/chat";
+const CHAT_URL = "/api/chat";
 
 type Msg = { role: "user" | "bot"; text: string };
 
-function extractText(data: unknown): string {
-  if (data == null) return "";
-  if (typeof data === "string") return data;
-  if (Array.isArray(data)) {
-    for (const item of data) {
-      const t = extractText(item);
-      if (t) return t;
-    }
-    return "";
-  }
-  if (typeof data === "object") {
-    const obj = data as Record<string, unknown>;
-    // Common n8n Chat Trigger / AI Agent response keys
-    const keys = ["output", "text", "message", "response", "answer", "content", "reply", "data"];
-    for (const k of keys) {
-      if (k in obj) {
-        const t = extractText(obj[k]);
-        if (t) return t;
-      }
-    }
-  }
-  return "";
-}
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -55,46 +31,15 @@ export function ChatWidget() {
     setMessages((m) => [...m, { role: "user", text }]);
     setLoading(true);
     try {
-      const res = await fetch(WEBHOOK_URL, {
+      const res = await fetch(CHAT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "sendMessage",
-          sessionId: sessionIdRef.current,
-          chatInput: text,
-          message: text,
-        }),
+        body: JSON.stringify({ message: text, sessionId: sessionIdRef.current }),
       });
-      const raw = (await res.text()).trim();
-      let reply = "";
-      // n8n Chat Trigger streaming: NDJSON con {type:"item",content:"..."}
-      if (raw.includes('"type"') && raw.includes('"item"')) {
-        const lines = raw.split(/\r?\n/).filter(Boolean);
-        const parts: string[] = [];
-        for (const line of lines) {
-          try {
-            const obj = JSON.parse(line);
-            if (obj?.type === "item" && typeof obj.content === "string") {
-              parts.push(obj.content);
-            } else if (obj?.type === "end" && typeof obj?.content === "string") {
-              parts.push(obj.content);
-            }
-          } catch {
-            /* ignore parse errors per line */
-          }
-        }
-        reply = parts.join("").trim();
-      }
-      if (!reply) {
-        // Fallback: respuesta JSON única
-        try {
-          reply = extractText(JSON.parse(raw));
-        } catch {
-          reply = raw;
-        }
-      }
-      if (!reply) reply = "Disculpá, no pude generar una respuesta en este momento. Probá de nuevo en un ratito 🙏";
-
+      const data = (await res.json().catch(() => ({}))) as { reply?: string; error?: string };
+      const reply =
+        data.reply?.trim() ||
+        "Disculpá, no pude generar una respuesta en este momento. Probá de nuevo en un ratito 🙏";
       setMessages((m) => [...m, { role: "bot", text: reply }]);
     } catch {
       setMessages((m) => [
