@@ -77,7 +77,7 @@ function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <span className="font-display text-xl leading-none">H</span>
+            <span className="font-display text-xl leading-none">F</span>
           </div>
           <div>
             <h1 className="font-display text-2xl leading-tight sm:text-3xl">FreelanceTrack</h1>
