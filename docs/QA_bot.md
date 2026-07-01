@@ -1,19 +1,19 @@
-# HorasClaras — Documento Q&A para bot de landing
+# FreelanceTrack — Documento Q&A para bot de landing
 ## Base de conocimiento para agente RAG
 ---
 
-**¿Qué es HorasClaras?**
-HorasClaras es una app para profesoras de inglés y traductoras freelance que les permite registrar cuánto tiempo trabajan para cada cliente, calcular presupuestos automáticamente y generar un tarifario en PDF listo para enviar por WhatsApp. Sin planillas, sin cuentas a mano, sin perder tiempo.
+**¿Qué es FreelanceTrack?**
+FreelanceTrack es una app para profesoras de inglés y traductoras freelance que les permite registrar cuánto tiempo trabajan para cada cliente, calcular presupuestos automáticamente y generar un tarifario en PDF listo para enviar por WhatsApp. Sin planillas, sin cuentas a mano, sin perder tiempo.
 
 ---
 
-**¿Para quién es HorasClaras?**
-Para profesionales independientes que cobran por hora o por palabra: principalmente profesoras de inglés y traductoras freelance. Si tenés varios clientes y perdés tiempo calculando cuánto cobrarles a fin de mes, HorasClaras es para vos.
+**¿Para quién es FreelanceTrack?**
+Para profesionales independientes que cobran por hora o por palabra: principalmente profesoras de inglés y traductoras freelance. Si tenés varios clientes y perdés tiempo calculando cuánto cobrarles a fin de mes, FreelanceTrack es para vos.
 
 ---
 
 **¿Qué problema resuelve exactamente?**
-Muchas profes y traductoras terminan el mes sin saber bien cuántas horas trabajaron ni cuánto cobrar. Arman el presupuesto a mano en WhatsApp o en una planilla, y a veces cobran de menos porque olvidaron horas. HorasClaras automatiza todo ese proceso.
+Muchas profes y traductoras terminan el mes sin saber bien cuántas horas trabajaron ni cuánto cobrar. Arman el presupuesto a mano en WhatsApp o en una planilla, y a veces cobran de menos porque olvidaron horas. FreelanceTrack automatiza todo ese proceso.
 
 ---
 
@@ -23,7 +23,7 @@ Entrás a la app, elegís el cliente, ponés la fecha y la duración (en horas y
 ---
 
 **¿Qué es la diferencia entre hora "facturable" y "planificación"?**
-Las horas facturables son las que le cobrás al cliente: clases, traducciones, reuniones. Las de planificación son las que invertís preparando material o estudiando — son tuyas, no se facturan. HorasClaras las separa para que veas cuánto tiempo real dedicás a cada cliente versus cuánto tiempo "invisible" te consume.
+Las horas facturables son las que le cobrás al cliente: clases, traducciones, reuniones. Las de planificación son las que invertís preparando material o estudiando — son tuyas, no se facturan. FreelanceTrack las separa para que veas cuánto tiempo real dedicás a cada cliente versus cuánto tiempo "invisible" te consume.
 
 ---
 
@@ -33,7 +33,7 @@ Pegás el texto a traducir en la app y ella cuenta automáticamente cuántas pal
 ---
 
 **¿Qué es el descuento por repeticiones?**
-En traducción, si una frase o palabra aparece varias veces en el documento, es más rápido de traducir la segunda vez. Por eso se aplica un descuento a las palabras repetidas. HorasClaras lo calcula automáticamente según el porcentaje que vos configurás por cliente.
+En traducción, si una frase o palabra aparece varias veces en el documento, es más rápido de traducir la segunda vez. Por eso se aplica un descuento a las palabras repetidas. FreelanceTrack lo calcula automáticamente según el porcentaje que vos configurás por cliente.
 
 ---
 
@@ -47,13 +47,13 @@ Sí. Cuando das de alta un cliente elegís si se factura por hora o por palabra.
 
 ---
 
-**¿Cuánto cuesta HorasClaras?**
+**¿Cuánto cuesta FreelanceTrack?**
 Actualmente estamos en fase de lanzamiento. Podés anotarte para acceso anticipado y ser de las primeras en probarlo gratis.
 
 ---
 
 **¿Necesito saber de tecnología para usarlo?**
-No. La app está diseñada para usuarias no técnicas. Si sabés usar WhatsApp y Google, sabés usar HorasClaras. El objetivo es que cargar una hora te tome menos de 2 minutos.
+No. La app está diseñada para usuarias no técnicas. Si sabés usar WhatsApp y Google, sabés usar FreelanceTrack. El objetivo es que cargar una hora te tome menos de 2 minutos.
 
 ---
 
@@ -77,4 +77,4 @@ Dejás tu email en el formulario de esta página y te avisamos cuando esté disp
 
 ---
 
-*Documento preparado para bot RAG — HorasClaras v1 — Junio 2026*
+*Documento preparado para bot RAG — FreelanceTrack v1 — Junio 2026*

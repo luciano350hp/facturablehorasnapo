@@ -8,13 +8,13 @@ export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
-      { title: "HorasClaras — Sabé exactamente cuánto cobrar" },
+      { title: "FreelanceTrack — Sabé exactamente cuánto cobrar" },
       {
         name: "description",
         content:
           "Para profes de inglés y traductoras freelance: registrá tus horas y trabajos de traducción, y generá un tarifario PDF listo para enviar por WhatsApp.",
       },
-      { property: "og:title", content: "HorasClaras — Sabé exactamente cuánto cobrar" },
+      { property: "og:title", content: "FreelanceTrack — Sabé exactamente cuánto cobrar" },
       {
         property: "og:description",
         content:
@@ -338,7 +338,7 @@ function Landing() {
       </section>
 
       <footer className="hc-footer">
-        © 2026 HorasClaras · Para profes y traductoras freelance de Argentina
+        © 2026 FreelanceTrack · Para profes y traductoras freelance de Argentina
       </footer>
       <ChatWidget />
     </div>

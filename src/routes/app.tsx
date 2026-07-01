@@ -61,7 +61,7 @@ function Index() {
         </Tabs>
       </main>
       <footer className="border-t border-border/60 py-8 text-center text-xs text-muted-foreground">
-        Prototipo HorasClaras v1.1 · datos guardados en tu navegador
+        Prototipo FreelanceTrack v1.1 · datos guardados en tu navegador
       </footer>
     </div>
   );
@@ -77,7 +77,7 @@ function Header() {
             <span className="font-display text-xl leading-none">H</span>
           </div>
           <div>
-            <h1 className="font-display text-2xl leading-tight sm:text-3xl">HorasClaras</h1>
+            <h1 className="font-display text-2xl leading-tight sm:text-3xl">FreelanceTrack</h1>
             <p className="text-xs text-muted-foreground">Hola, {store.profileName} · {store.clients.length} clientes activos</p>
           </div>
         </div>
@@ -527,7 +527,7 @@ function Tarifario() {
 
     doc.setFont("times", "italic");
     doc.setFontSize(28);
-    doc.text("HorasClaras", 50, y);
+    doc.text("FreelanceTrack", 50, y);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(120);
@@ -584,7 +584,7 @@ function Tarifario() {
     doc.setFontSize(9);
     doc.setTextColor(140);
     doc.text(
-      "Generado con HorasClaras · documento informativo, no es factura legal.",
+      "Generado con FreelanceTrack · documento informativo, no es factura legal.",
       pageW / 2, doc.internal.pageSize.getHeight() - 40, { align: "center" },
     );
 

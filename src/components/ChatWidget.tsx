@@ -9,7 +9,7 @@ type Msg = { role: "user" | "bot"; text: string };
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "bot", text: "¡Hola! Soy Clara, la asistente de HorasClaras 🙂 ¿En qué te ayudo?" },
+    { role: "bot", text: "¡Hola! Soy Clara, la asistente de FreelanceTrack 🙂 ¿En qué te ayudo?" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -78,7 +78,7 @@ export function ChatWidget() {
               C
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-semibold">Clara — HorasClaras</span>
+              <span className="text-sm font-semibold">Clara — FreelanceTrack</span>
               <span className="text-xs opacity-70">Resuelvo tus dudas en segundos</span>
             </div>
           </div>
