@@ -31,46 +31,15 @@ export function ChatWidget() {
     setMessages((m) => [...m, { role: "user", text }]);
     setLoading(true);
     try {
-      const res = await fetch(WEBHOOK_URL, {
+      const res = await fetch(CHAT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "sendMessage",
-          sessionId: sessionIdRef.current,
-          chatInput: text,
-          message: text,
-        }),
+        body: JSON.stringify({ message: text, sessionId: sessionIdRef.current }),
       });
-      const raw = (await res.text()).trim();
-      let reply = "";
-      // n8n Chat Trigger streaming: NDJSON con {type:"item",content:"..."}
-      if (raw.includes('"type"') && raw.includes('"item"')) {
-        const lines = raw.split(/\r?\n/).filter(Boolean);
-        const parts: string[] = [];
-        for (const line of lines) {
-          try {
-            const obj = JSON.parse(line);
-            if (obj?.type === "item" && typeof obj.content === "string") {
-              parts.push(obj.content);
-            } else if (obj?.type === "end" && typeof obj?.content === "string") {
-              parts.push(obj.content);
-            }
-          } catch {
-            /* ignore parse errors per line */
-          }
-        }
-        reply = parts.join("").trim();
-      }
-      if (!reply) {
-        // Fallback: respuesta JSON única
-        try {
-          reply = extractText(JSON.parse(raw));
-        } catch {
-          reply = raw;
-        }
-      }
-      if (!reply) reply = "Disculpá, no pude generar una respuesta en este momento. Probá de nuevo en un ratito 🙏";
-
+      const data = (await res.json().catch(() => ({}))) as { reply?: string; error?: string };
+      const reply =
+        data.reply?.trim() ||
+        "Disculpá, no pude generar una respuesta en este momento. Probá de nuevo en un ratito 🙏";
       setMessages((m) => [...m, { role: "bot", text: reply }]);
     } catch {
       setMessages((m) => [
