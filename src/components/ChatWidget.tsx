@@ -75,7 +75,7 @@ export function ChatWidget() {
               className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
               style={{ background: "#d4622a" }}
             >
-              C
+              S
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-semibold">Sofi — FreelanceTrack</span>
