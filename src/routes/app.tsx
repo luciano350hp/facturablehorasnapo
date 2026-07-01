@@ -43,6 +43,9 @@ function Index() {
     <div className="min-h-screen bg-background text-foreground">
       <Toaster position="top-center" richColors />
       <Header />
+      <div className="border-b border-amber-200 bg-amber-100 px-4 py-2.5 text-center text-sm text-amber-900">
+        <span className="font-medium">⚠️ Prototipo de demostración:</span> no ingreses datos reales. Toda la información mostrada es ficticia y solo se guarda en tu navegador.
+      </div>
       <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6">
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="grid w-full grid-cols-2 gap-1 bg-secondary/60 p-1 sm:grid-cols-5 sm:gap-0">
@@ -61,7 +64,7 @@ function Index() {
         </Tabs>
       </main>
       <footer className="border-t border-border/60 py-8 text-center text-xs text-muted-foreground">
-        Prototipo HorasClaras v1.1 · datos guardados en tu navegador
+        Prototipo FreelanceTrack v1.1 · datos guardados en tu navegador
       </footer>
     </div>
   );
@@ -74,10 +77,10 @@ function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <span className="font-display text-xl leading-none">H</span>
+            <span className="font-display text-xl leading-none">F</span>
           </div>
           <div>
-            <h1 className="font-display text-2xl leading-tight sm:text-3xl">HorasClaras</h1>
+            <h1 className="font-display text-2xl leading-tight sm:text-3xl">FreelanceTrack</h1>
             <p className="text-xs text-muted-foreground">Hola, {store.profileName} · {store.clients.length} clientes activos</p>
           </div>
         </div>
@@ -527,7 +530,7 @@ function Tarifario() {
 
     doc.setFont("times", "italic");
     doc.setFontSize(28);
-    doc.text("HorasClaras", 50, y);
+    doc.text("FreelanceTrack", 50, y);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(120);
@@ -584,7 +587,7 @@ function Tarifario() {
     doc.setFontSize(9);
     doc.setTextColor(140);
     doc.text(
-      "Generado con HorasClaras · documento informativo, no es factura legal.",
+      "Generado con FreelanceTrack · documento informativo, no es factura legal.",
       pageW / 2, doc.internal.pageSize.getHeight() - 40, { align: "center" },
     );
 

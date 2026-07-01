@@ -8,13 +8,13 @@ export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
-      { title: "HorasClaras — Sabé exactamente cuánto cobrar" },
+      { title: "FreelanceTrack — Sabé exactamente cuánto cobrar" },
       {
         name: "description",
         content:
           "Para profes de inglés y traductoras freelance: registrá tus horas y trabajos de traducción, y generá un tarifario PDF listo para enviar por WhatsApp.",
       },
-      { property: "og:title", content: "HorasClaras — Sabé exactamente cuánto cobrar" },
+      { property: "og:title", content: "FreelanceTrack — Sabé exactamente cuánto cobrar" },
       {
         property: "og:description",
         content:
@@ -189,7 +189,7 @@ function Landing() {
 
       <nav className="hc-nav">
         <a className="hc-logo" href="#top">
-          Horas<span>Claras</span>
+          Freelance<span>Track</span>
         </a>
         <div className="hc-nav-right">
           <Link to="/app" className="hc-nav-link">
@@ -219,6 +219,9 @@ function Landing() {
           </div>
           <p className="hc-hero-note">
             Gratis durante el lanzamiento · Sin tarjeta de crédito
+          </p>
+          <p className="hc-hero-note" style={{ color: "#b8501f", fontWeight: 500 }}>
+            ⚠️ Esto es un prototipo de demostración. No ingreses datos reales ni confidenciales.
           </p>
         </div>
       </section>
@@ -338,7 +341,7 @@ function Landing() {
       </section>
 
       <footer className="hc-footer">
-        © 2026 HorasClaras · Para profes y traductoras freelance de Argentina
+        © 2026 FreelanceTrack · Para profes y traductoras freelance de Argentina
       </footer>
       <ChatWidget />
     </div>
