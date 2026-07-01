@@ -43,6 +43,9 @@ function Index() {
     <div className="min-h-screen bg-background text-foreground">
       <Toaster position="top-center" richColors />
       <Header />
+      <div className="border-b border-amber-200 bg-amber-100 px-4 py-2.5 text-center text-sm text-amber-900">
+        <span className="font-medium">⚠️ Prototipo de demostración:</span> no ingreses datos reales. Toda la información mostrada es ficticia y solo se guarda en tu navegador.
+      </div>
       <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6">
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="grid w-full grid-cols-2 gap-1 bg-secondary/60 p-1 sm:grid-cols-5 sm:gap-0">
