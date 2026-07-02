@@ -1,15 +1,92 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 
-const CHAT_URL = "/api/chat";
+const N8N_CHAT_URL =
+  "https://napoeltibu.app.n8n.cloud/webhook/364f2dcc-4366-4064-aa70-e962346850fd/chat";
+const FALLBACK_URL = "/api/chat";
 
 type Msg = { role: "user" | "bot"; text: string };
 
+const DEFAULT_ERROR =
+  "Disculpá, no pude generar una respuesta en este momento. Probá de nuevo en un ratito 🙏";
+
+function extractN8nReply(text: string): string | null {
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  let out = "";
+  for (const line of lines) {
+    try {
+      const data = JSON.parse(line);
+      const part =
+        typeof data === "string"
+          ? data
+          : data.output ??
+            data.text ??
+            data.reply ??
+            data.data?.output ??
+            data.data?.text ??
+            "";
+      if (typeof part === "string") out += part;
+    } catch {
+      // ignore non-JSON lines
+    }
+  }
+  const cleaned = out.trim();
+  return cleaned || null;
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...init, signal: ctrl.signal });
+    return res;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+async function tryN8n(message: string, sessionId: string): Promise<string | null> {
+  try {
+    const res = await fetchWithTimeout(
+      N8N_CHAT_URL,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, sessionId }),
+      },
+      8000,
+    );
+    if (!res.ok) return null;
+    const text = await res.text();
+    return extractN8nReply(text);
+  } catch {
+    return null;
+  }
+}
+
+async function tryFallback(message: string, sessionId: string): Promise<string> {
+  const res = await fetch(FALLBACK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, sessionId }),
+  });
+  const data = (await res.json().catch(() => ({}))) as {
+    reply?: string;
+    error?: string;
+  };
+  return data.reply?.trim() || DEFAULT_ERROR;
+}
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "bot", text: "¡Hola! Soy Sofi, la asistente de FreelanceTrack 🙂 ¿En qué te ayudo?" },
+    {
+      role: "bot",
+      text: "¡Hola! Soy Clara, la asistente de HorasClaras 🙂 ¿En qué te ayudo?",
+    },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +98,10 @@ export function ChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages, loading, open]);
 
   async function send() {
@@ -31,20 +111,17 @@ export function ChatWidget() {
     setMessages((m) => [...m, { role: "user", text }]);
     setLoading(true);
     try {
-      const res = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, sessionId: sessionIdRef.current }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { reply?: string; error?: string };
       const reply =
-        data.reply?.trim() ||
-        "Disculpá, no pude generar una respuesta en este momento. Probá de nuevo en un ratito 🙏";
+        (await tryN8n(text, sessionIdRef.current)) ||
+        (await tryFallback(text, sessionIdRef.current));
       setMessages((m) => [...m, { role: "bot", text: reply }]);
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "bot", text: "Ups, hubo un problema de conexión. Intentá nuevamente." },
+        {
+          role: "bot",
+          text: "Ups, hubo un problema de conexión. Intentá nuevamente.",
+        },
       ]);
     } finally {
       setLoading(false);
@@ -67,24 +144,35 @@ export function ChatWidget() {
       {open && (
         <div
           className="fixed bottom-24 right-5 z-50 flex w-[90vw] max-w-[380px] flex-col overflow-hidden rounded-2xl shadow-2xl"
-          style={{ height: "min(560px, 75vh)", background: "#fff", border: "1px solid #e5e0d8" }}
+          style={{
+            height: "min(560px, 75vh)",
+            background: "#fff",
+            border: "1px solid #e5e0d8",
+          }}
         >
           {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-3" style={{ background: "#1a1714", color: "#fff" }}>
+          <div
+            className="flex items-center gap-3 px-4 py-3"
+            style={{ background: "#1a1714", color: "#fff" }}
+          >
             <div
               className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
               style={{ background: "#d4622a" }}
             >
-              S
+              C
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-semibold">Sofi — FreelanceTrack</span>
+              <span className="text-sm font-semibold">Clara — HorasClaras</span>
               <span className="text-xs opacity-70">Resuelvo tus dudas en segundos</span>
             </div>
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3" style={{ background: "#f7f3ee" }}>
+          <div
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto px-3 py-3"
+            style={{ background: "#f7f3ee" }}
+          >
             <div className="flex flex-col gap-2">
               {messages.map((m, i) => (
                 <div
@@ -92,8 +180,19 @@ export function ChatWidget() {
                   className="max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm"
                   style={
                     m.role === "user"
-                      ? { alignSelf: "flex-end", background: "#d4622a", color: "#fff", borderBottomRightRadius: 4 }
-                      : { alignSelf: "flex-start", background: "#fff", color: "#1a1714", border: "1px solid #ece6dc", borderBottomLeftRadius: 4 }
+                      ? {
+                          alignSelf: "flex-end",
+                          background: "#d4622a",
+                          color: "#fff",
+                          borderBottomRightRadius: 4,
+                        }
+                      : {
+                          alignSelf: "flex-start",
+                          background: "#fff",
+                          color: "#1a1714",
+                          border: "1px solid #ece6dc",
+                          borderBottomLeftRadius: 4,
+                        }
                   }
                 >
                   {m.text}
@@ -102,12 +201,26 @@ export function ChatWidget() {
               {loading && (
                 <div
                   className="max-w-[85%] rounded-2xl px-3 py-2 text-sm"
-                  style={{ alignSelf: "flex-start", background: "#fff", color: "#5a5450", border: "1px solid #ece6dc" }}
+                  style={{
+                    alignSelf: "flex-start",
+                    background: "#fff",
+                    color: "#5a5450",
+                    border: "1px solid #ece6dc",
+                  }}
                 >
                   <span className="inline-flex gap-1">
-                    <span className="h-2 w-2 animate-bounce rounded-full" style={{ background: "#d4622a", animationDelay: "0ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full" style={{ background: "#d4622a", animationDelay: "120ms" }} />
-                    <span className="h-2 w-2 animate-bounce rounded-full" style={{ background: "#d4622a", animationDelay: "240ms" }} />
+                    <span
+                      className="h-2 w-2 animate-bounce rounded-full"
+                      style={{ background: "#d4622a", animationDelay: "0ms" }}
+                    />
+                    <span
+                      className="h-2 w-2 animate-bounce rounded-full"
+                      style={{ background: "#d4622a", animationDelay: "120ms" }}
+                    />
+                    <span
+                      className="h-2 w-2 animate-bounce rounded-full"
+                      style={{ background: "#d4622a", animationDelay: "240ms" }}
+                    />
                   </span>
                 </div>
               )}

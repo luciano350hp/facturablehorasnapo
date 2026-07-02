@@ -1,4 +1,4 @@
-# FreelanceTrack — Modelo de datos (DER)
+# HorasClaras — Modelo de datos (DER)
 
 Modelo recomendado para cuando se migre de `localStorage` a base de datos (Lovable Cloud / Postgres).
 
