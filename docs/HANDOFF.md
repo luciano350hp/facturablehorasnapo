@@ -78,6 +78,7 @@ Tipografías: Instrument Serif (títulos) + Work Sans (texto).
 | `src/styles.css` | Tokens de diseño (Tailwind v4 `@theme`) |
 | `src/integrations/supabase/*` | Cliente Supabase autogenerado (no editar) |
 | `supabase/migrations/*.sql` | Esquema de base de datos |
+| `docs/PRD.md` | Documento de definición de producto (PRD v1.1) — problema, usuario, features MVP, métricas |
 | `docs/DER.md` | Diagrama ER (Mermaid): modelo simple y modelo con facturas |
 | `docs/QA_bot.md` | Base de conocimiento del chatbot (RAG) |
 
