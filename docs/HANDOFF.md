@@ -81,6 +81,7 @@ Tipografías: Instrument Serif (títulos) + Work Sans (texto).
 | `docs/PRD.md` | Documento de definición de producto (PRD v1.1) — problema, usuario, features MVP, métricas |
 | `docs/DER.md` | Diagrama ER (Mermaid): modelo simple y modelo con facturas |
 | `docs/QA_bot.md` | Base de conocimiento del chatbot (RAG) |
+| `docs/N8N.md` | Flujo de n8n del chatbot: nodos, payload, CORS, fallback y errores frecuentes |
 
 Dependencias no triviales: `jspdf` (PDF), `sonner` (toasts), `lucide-react` (iconos),
 `@supabase/supabase-js`, `recharts`.
